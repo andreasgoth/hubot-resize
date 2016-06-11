@@ -39,7 +39,7 @@ module.exports = function(robot) {
         console.error(err);
       } else {
         download(res.match[1], '/tmp/hubot/resize/tmp/' + filename, function() {
-          var resizedImg = gm('/tmp/hubot/resize/tmp/' + filename).resize(150, 150)
+          var resizedImg = gm('/tmp/hubot/resize/tmp/' + filename).coalesce().resize(150, 150)
           resizedImg.write('/tmp/hubot/resize/' + filename, function () {
             return res.send(process.env.HUBOT_RESIZE_SERVER_URL + '/hubot/resize/' + filename);
           });
