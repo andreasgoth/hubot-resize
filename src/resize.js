@@ -23,7 +23,7 @@ function getFilenameFromUrl(url) {
 module.exports = function(robot) {
 
   var resize_size = process.env.HUBOT_RESIZE_DEFAULT_SIZE
-  var urlRegex = /resize (https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/
+  var urlRegex = /resize.+(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/
 
   robot.hear(urlRegex, function(res) {
 
