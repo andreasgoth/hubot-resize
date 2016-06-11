@@ -7,6 +7,6 @@
 
 ## Usage
 
-`resize http://example.com/lolz.gif`
+`resize <http://example.com/lolz.gif>`
 
-Wrap url in ``` to prevent it from exapanding the big image.
+Wrap url in <> to prevent it from exapanding the big image.
