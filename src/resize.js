@@ -11,6 +11,7 @@
 //   Andreas Göth <a@hrhr.se>
 
 var fs = require('fs');
+var path = require("path");
 var mkdirp = require('mkdirp');
 var request = require('request');
 var gm = require('gm').subClass({imageMagick: true});
