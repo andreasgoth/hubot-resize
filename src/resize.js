@@ -54,7 +54,7 @@ module.exports = function(robot) {
         .on('close', function() {
 
           // Resize image
-          let resizedImg = gm(tmpFolder + urlHash).coalesce().resize(maxSize, maxSize);
+          let resizedImg = gm(tmpFolder + newFilename).coalesce().resize(maxSize, maxSize);
           resizedImg.write(outputFolder + newFilename, function() {
 
           // Send path

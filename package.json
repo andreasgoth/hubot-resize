@@ -1,7 +1,7 @@
 {
   "name": "hubot-resize",
   "description": "Resize images",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Andreas Göth <a@hrhr.se>",
   "license": "MIT",
   "keywords": "hubot, hubot-scripts",
