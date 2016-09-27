@@ -3,53 +3,71 @@
 //
 // Configuration:
 //   HUBOT_RESIZE_SERVER_URL
+//   HUBOT_RESIZE_DEFAULT_SIZE
 //
 // Notes:
 //   Install imagemagic, glhf ¯\_(ツ)_/¯
 //
 // Author:
 //   Andreas Göth <a@hrhr.se>
+'use strict'
 
 var fs = require('fs');
 var path = require("path");
 var mkdirp = require('mkdirp');
 var request = require('request');
+var crypto = require('crypto');
 var gm = require('gm').subClass({imageMagick: true});
-
-function getFilenameFromUrl(url) {
-  return url.match(/(?=\w+\.\w{3,4}$).+/)[0];
-}
 
 module.exports = function(robot) {
 
-  var resize_size = process.env.HUBOT_RESIZE_DEFAULT_SIZE
-  var urlRegex = /resize.+(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))/
+  const urlRegex = /resize.+(https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/=]*)).?\s?(\d.+)?/;
+  const defaultSize = process.env.HUBOT_RESIZE_DEFAULT_SIZE
+  const serverUrl = process.env.HUBOT_RESIZE_SERVER_URL
+  const tmpFolder = '/tmp/hubot/resize/tmp/';
+  const outputFolder = '/tmp/hubot/resize/';
+  const serverPath = '/hubot/resize/';
+
+  function getFileExt(filename) {
+    return filename.split('.').pop();
+  }
 
   robot.hear(urlRegex, function(res) {
+    let imageUrl = res.match[1];
+    let sizeArg = res.match[2]
+    let maxSize = (typeof sizeArg === 'undefined') ? defaultSize : sizeArg;
+    let fileExt = '.' + getFileExt(imageUrl);
 
-    var filename = getFilenameFromUrl(res.match[1]);
-    var download = function(uri, filename, callback) {
-      request.head(uri, function(err, res, body){
-        request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
-      });
-    };
-
-    mkdirp('/tmp/hubot/resize/tmp/', function(err) {
+    // Create folder
+    mkdirp(tmpFolder, function(err) {
       if (err) {
         console.error(err);
-      } else {
-        download(res.match[1], '/tmp/hubot/resize/tmp/' + filename, function() {
-          var resizedImg = gm('/tmp/hubot/resize/tmp/' + filename).coalesce().resize(150, 150)
-          resizedImg.write('/tmp/hubot/resize/' + filename, function () {
-            return res.send(process.env.HUBOT_RESIZE_SERVER_URL + '/hubot/resize/' + filename);
-          });
-        })
+        return;
       }
+
+      // Download to tmp
+      let urlHash = crypto.createHash('md5').update(imageUrl).digest("hex");
+      let newFilename = urlHash + '_' + maxSize + fileExt;
+      let outputTo = tmpFolder + newFilename;
+      request(imageUrl)
+        .pipe(fs.createWriteStream(outputTo))
+        .on('close', function() {
+
+          // Resize image
+          let resizedImg = gm(tmpFolder + urlHash).coalesce().resize(maxSize, maxSize);
+          resizedImg.write(outputFolder + newFilename, function() {
+
+          // Send path
+          res.send(serverUrl + serverPath + newFilename);
+        });
+      });
     });
+
   });
 
-  robot.router.get('/hubot/resize/:key', function(req, res) {
-    var tmp = path.join('/tmp/hubot/resize/', req.params.key);
+  // Serve images
+  robot.router.get(outputFolder+':key', function(req, res) {
+    var tmp = path.join(outputFolder, req.params.key);
     return fs.exists(tmp, function(exists) {
       if (exists) {
         return fs.readFile(tmp, function(err, data) {
