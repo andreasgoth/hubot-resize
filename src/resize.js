@@ -48,24 +48,24 @@ module.exports = function(robot) {
       // Download to tmp
       let urlHash = crypto.createHash('md5').update(imageUrl).digest("hex");
       let newFilename = urlHash + '_' + maxSize + fileExt;
+      let outputTo = tmpFolder + newFilename;
       request(imageUrl)
-        .pipe(fs.createWriteStream(tmpFolder + newFilename))
-        .on('close', function() {
+      .pipe(fs.createWriteStream(outputTo))
+      .on('close', function() {
 
-          // Resize image
-          let resizedImg = gm(tmpFolder + newFilename).coalesce().resize(maxSize, maxSize);
-          resizedImg.write(outputFolder + newFilename, function() {
+        // Resize image
+        let resizedImg = gm(tmpFolder + newFilename).coalesce().resize(maxSize, maxSize);
+        resizedImg.write(outputFolder + newFilename, function(err) {
 
           // Send path
           res.send(serverUrl + serverPath + newFilename);
         });
       });
     });
-
   });
 
   // Serve images
-  robot.router.get(outputFolder+':key', function(req, res) {
+  robot.router.get(serverPath+':key', function(req, res) {
     var tmp = path.join(outputFolder, req.params.key);
     return fs.exists(tmp, function(exists) {
       if (exists) {
