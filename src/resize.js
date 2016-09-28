@@ -48,9 +48,8 @@ module.exports = function(robot) {
       // Download to tmp
       let urlHash = crypto.createHash('md5').update(imageUrl).digest("hex");
       let newFilename = urlHash + '_' + maxSize + fileExt;
-      let outputTo = tmpFolder + newFilename;
       request(imageUrl)
-        .pipe(fs.createWriteStream(outputTo))
+        .pipe(fs.createWriteStream(tmpFolder + newFilename))
         .on('close', function() {
 
           // Resize image
